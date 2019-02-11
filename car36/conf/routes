@@ -1,0 +1,14 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# https://www.playframework.com/documentation/latest/ScalaRouting
+# ~~~~
+
+GET		/v1/adverts					controllers.AdvertsController.getAdverts(field: Option[String])
+
+POST 	/v1/adverts					controllers.AdvertsController.addAdvert()
+
+GET		/v1/adverts/:advertId			controllers.AdvertsController.getAdvert(advertId: String)
+
+DELETE 	/v1/adverts/:advertId			controllers.AdvertsController.deleteAdvert(advertId: String)
+
+PUT		/v1/adverts/:advertId			controllers.AdvertsController.setAdvert(advertId: String)
