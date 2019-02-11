@@ -1,0 +1,385 @@
+{
+	"info": {
+		"_postman_id": "0cb45c1d-bc33-4735-bdb8-33b00af6d7fa",
+		"name": "CarScout36",
+		"description": "A simple RESTful web-service that allows users to place new car adverts and view, modify and delete existing car adverts.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "adverts",
+			"item": [
+				{
+					"name": "Retrieves all adverts sorted by id, or optionally sorted by field",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1cc89401-32b9-4f83-8e1e-deeba8a8ce38",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"List is empty\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.eql([]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/v1/adverts?sortby={{sortby}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"adverts"
+							],
+							"query": [
+								{
+									"key": "sortby",
+									"value": "{{sortby}}"
+								}
+							]
+						},
+						"description": "A field to sort by can be provided with the query parameter sortby"
+					},
+					"response": []
+				},
+				{
+					"name": "Add a new advert to the store",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7b296344-9167-4f3d-bb28-50e2b174c505",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Returns added advert\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.title).to.eql(\"opel\");",
+									"    pm.expect(jsonData.fuel).to.eql(\"diesel\");",
+									"    pm.expect(jsonData.new).to.eql(false);",
+									"    pm.expect(jsonData.price).to.eql(3000);",
+									"    pm.expect(jsonData.mileage).to.eql(220000);",
+									"    postman.setEnvironmentVariable(\"advertId\", jsonData.id);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": \"1\",\r\n  \"title\": \"opel\",\r\n  \"fuel\": \"diesel\",\r\n  \"new\": false,\r\n  \"price\": 3000,\r\n  \"mileage\": 220000\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/v1/adverts",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"adverts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find advert by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1816d0f0-4b1f-4ee2-bec9-74f24a69ea41",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Can get added advert by id\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.id).to.eql(pm.environment.get(\"advertId\"));",
+									"    pm.expect(jsonData.title).to.eql(\"opel\");",
+									"    pm.expect(jsonData.fuel).to.eql(\"diesel\");",
+									"    pm.expect(jsonData.new).to.eql(false);",
+									"    pm.expect(jsonData.price).to.eql(3000);",
+									"    pm.expect(jsonData.mileage).to.eql(220000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/v1/adverts/{{advertId}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"adverts",
+								"{{advertId}}"
+							]
+						},
+						"description": "Returns a single advert by id"
+					},
+					"response": []
+				},
+				{
+					"name": "Update an existing advert",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a6b92d16-8dc7-420f-8991-63693ddc1bab",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": \"{{advertId}}\",\r\n  \"title\": \"opel\",\r\n  \"fuel\": \"diesel\",\r\n  \"new\": false,\r\n  \"price\": 2500,\r\n  \"mileage\": 220000\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/v1/adverts/{{advertId}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"adverts",
+								"{{advertId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get advert with changed price",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1816d0f0-4b1f-4ee2-bec9-74f24a69ea41",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Return advert with changed price tag\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.id).to.eql(pm.environment.get(\"advertId\"));",
+									"    pm.expect(jsonData.title).to.eql(\"opel\");",
+									"    pm.expect(jsonData.fuel).to.eql(\"diesel\");",
+									"    pm.expect(jsonData.new).to.eql(false);",
+									"    pm.expect(jsonData.price).to.eql(2500);",
+									"    pm.expect(jsonData.mileage).to.eql(220000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/v1/adverts/{{advertId}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"adverts",
+								"{{advertId}}"
+							]
+						},
+						"description": "Returns a single advert by id"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete the advert",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "af2193a3-6629-4ff9-91fb-8b934d9eecf5",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "{{host}}/v1/adverts/{{advertId}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"adverts",
+								"{{advertId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deleted advert is not found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1816d0f0-4b1f-4ee2-bec9-74f24a69ea41",
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/v1/adverts/{{advertId}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"adverts",
+								"{{advertId}}"
+							]
+						},
+						"description": "Returns a single advert by id"
+					},
+					"response": []
+				}
+			],
+			"description": "Folder for adverts"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "c08b4ad2-d374-43a0-ad59-0831fc3f6e42",
+				"type": "text/javascript",
+				"exec": [
+					"setTimeout(()=>{},1000)"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "9a462ff4-dea9-47f1-afb2-fb14dc9e33e3",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
