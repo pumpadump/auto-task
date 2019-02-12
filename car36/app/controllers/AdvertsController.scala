@@ -7,82 +7,93 @@ import scala.collection.immutable.TreeMap
 import java.util.UUID
 import model.Advert
 import play.api.libs.json._
+import actors.AdvertsListActor
+import actors.AdvertsListActor._
+import akka.actor._
+import akka.util.Timeout
+import scala.util.Success
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.None
+import play.api.Logger
+
 
 @Singleton
-class AdvertsController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
+class AdvertsController @Inject() (system: ActorSystem, cc: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
-  //TODO This is just for mocking. Replace with persistence service
-  //TODO Not threadsafe
-  var adverts = new TreeMap[String, Advert]()
+  val listActor = system.actorOf(AdvertsListActor.props, "adverts-list-actor")
 
-  def getAdverts(field: Option[String]) = Action { implicit request: Request[AnyContent] =>
+  import scala.concurrent.duration._
+  import akka.pattern.ask
+  implicit val timeout: Timeout = 600.seconds
 
+  def getAdverts(field: Option[String]) = Action.async { implicit request: Request[AnyContent] =>
     {
-      field match {
-        case Some(sortby) => Ok(Json.toJson(sortAdvertsBy(sortby)))
-        case None         => Ok(Json.toJson(adverts.values.toList))
-      }
-    }
-  }
-
-  def addAdvert = Action(parse.json) { implicit request: Request[JsValue] =>
-    {
-      val body = request.body.asOpt[Advert]
-      body match {
-        case Some(advert) => {
-          val newAdvert = advert.copy(id = UUID.randomUUID().toString())
-          adverts = adverts + (newAdvert.id -> newAdvert)
-          Ok(Json.toJson(newAdvert))
+      (listActor ? GetAdverts(field)).mapTo[Seq[Advert]].map {
+        list => {
+          Ok(Json.toJson(list))
         }
-        case None => BadRequest("Advert could not be parsed")
       }
     }
   }
 
-  def getAdvert(advertId: String) = Action { implicit request: Request[AnyContent] =>
-    {
-      val advert = adverts.get(advertId);
-      advert match {
-        case Some(advert) => Ok(Json.toJson(advert))
-        case None         => NotFound("No advert found with id" + advertId)
-      }
-    }
-  }
-
-  def deleteAdvert(advertId: String) = Action { implicit request: Request[AnyContent] =>
-    {
-      adverts = adverts - advertId
-      Ok
-    }
-  }
-
-  def setAdvert(advertId: String) = Action(parse.json) { implicit request: Request[JsValue] =>
+  def addAdvert = Action(parse.json).async { implicit request: Request[JsValue] =>
     {
       val body = request.body.asOpt[Advert]
       body match {
-        case Some(newAdvert) => {
-          val existingAdvert = adverts.get(advertId);
-          existingAdvert match {
-            case Some(advert) => {
-              adverts = adverts + (advertId -> newAdvert)
-              Ok
-            }
-            case None => NotFound("Advert could not be updated, no advert found with id" + advertId)
+        case Some(advert) if Advert.validate(advert) => {
+          val newAdvert = advert.copy(id = UUID.randomUUID().toString());
+          (listActor ? AddAdvert(newAdvert)).mapTo[Advert].map {
+            addedAdvert => Ok(Json.toJson(addedAdvert))
           }
         }
-        case None => BadRequest("Advert could not be parsed")
+        case _ => Future(BadRequest("Advert could not be parsed"))
       }
     }
   }
 
-  def sortAdvertsBy(field: String): Seq[Advert] = {
-    //TODO sort by case class field
-    adverts.values.toList
+  def getAdvert(advertId: String) = Action.async { implicit request: Request[AnyContent] =>
+    {
+      (listActor ? GetAdvert(advertId)).mapTo[Response].map {
+        response =>
+          response match {
+            case Succeeded(advert) => {
+              Ok(Json.toJson(advert))
+            }
+            case AdvertNotFound()  => NotFound
+          }
+      }
+    }
   }
-  
-  def validateAdvert(advert: Advert): Boolean = {
-    //TODO
-    true
+
+  def deleteAdvert(advertId: String) = Action.async { implicit request: Request[AnyContent] =>
+    {
+      (listActor ? DeleteAdvert(advertId)).mapTo[Response].map {
+        response =>
+          response match {
+            case Succeeded(_)  => Ok
+            case AdvertNotFound() => NotFound
+          }
+      }
+    }
+  }
+
+  def setAdvert(advertId: String) = Action(parse.json).async { implicit request: Request[JsValue] =>
+    {
+      val body = request.body.asOpt[Advert]
+      body match {
+        case Some(newAdvert) if Advert.validate(newAdvert) => {
+          (listActor ? UpdateAdvert(advertId, newAdvert)).mapTo[Response].map {
+            response =>
+              response match {
+                case Succeeded(_)  => Ok
+                case AdvertNotFound() => NotFound
+              }
+          }
+        }
+        case _ => Future(BadRequest("Advert could not be parsed"))
+      }
+    }
   }
 
 }

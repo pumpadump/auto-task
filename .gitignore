@@ -1,2 +1,10 @@
 *.class
 *.log
+car36/.cache-main
+car36/.cache-tests
+car36/.g8/form/default.properties
+car36/.g8/form/app/controllers/$model__Camel$Controller.scala
+car36/.g8/form/app/views/$model__camel$/form.scala.html
+car36/.g8/form/test/controllers/$model__Camel$ControllerSpec.scala
+car36/bin
+car36/gradle
